@@ -1,8 +1,14 @@
 import { Preloader, IngredientDetailsUI } from '@ui';
+import { useParams } from 'react-router-dom';
+
+import { useSelector } from '../../services/store';
+import { selectIngredients } from '@/services/selectors';
 
 export const IngredientDetails = (): React.JSX.Element => {
-  // TODO: Взять переменную из стора
-  const ingredientData = null;
+  const { id } = useParams();
+  const ingredients = useSelector(selectIngredients);
+
+  const ingredientData = ingredients.find((item) => item._id === id);
 
   if (!ingredientData) {
     return <Preloader />;
