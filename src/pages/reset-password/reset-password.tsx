@@ -2,15 +2,20 @@ import { ResetPasswordUI } from '@ui-pages';
 import { type SyntheticEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { clearError, resetPassword } from '../../services/slices/user-slice';
 import { useDispatch, useSelector } from '../../services/store';
-import { resetPassword } from '../../services/slices/user-slice';
+import { selectUserError } from '@/services/selectors';
 
 export const ResetPassword = (): React.JSX.Element => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [password, setPassword] = useState('');
   const [token, setToken] = useState('');
-  const error = useSelector((state) => state.user.error);
+  const error = useSelector(selectUserError);
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   const handleSubmit = (e: SyntheticEvent): void => {
     e.preventDefault();

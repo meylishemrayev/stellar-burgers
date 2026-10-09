@@ -2,23 +2,29 @@ import { BurgerConstructorUI } from '@ui';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useDispatch, useSelector } from '../../services/store';
+import { clearConstructor } from '../../services/slices/constructor-slice';
 import {
   orderBurger,
   closeOrderModal as closeOrderModalAction,
 } from '../../services/slices/order-slice';
-import { clearConstructor } from '../../services/slices/constructor-slice';
+import { useDispatch, useSelector } from '../../services/store';
 
 import type { TConstructorIngredient } from '@utils-types';
+import {
+  selectBurgerConstructor,
+  selectOrderModalData,
+  selectOrderRequest,
+  selectUser,
+} from '@/services/selectors';
 
 export const BurgerConstructor = (): React.JSX.Element | null => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const constructorItems = useSelector((state) => state.burgerConstructor);
-  const orderRequest = useSelector((state) => state.order.orderRequest);
-  const orderModalData = useSelector((state) => state.order.orderModalData);
-  const user = useSelector((state) => state.user.user);
+  const constructorItems = useSelector(selectBurgerConstructor);
+  const orderRequest = useSelector(selectOrderRequest);
+  const orderModalData = useSelector(selectOrderModalData);
+  const user = useSelector(selectUser);
 
   const onOrderClick = (): void => {
     if (!constructorItems.bun || orderRequest) return;
@@ -34,9 +40,12 @@ export const BurgerConstructor = (): React.JSX.Element | null => {
       constructorItems.bun._id,
     ];
 
-    void dispatch(orderBurger(ids)).then(() => {
-      dispatch(clearConstructor());
-    });
+    void dispatch(orderBurger(ids))
+      .unwrap()
+      .then(() => {
+        dispatch(clearConstructor());
+      })
+      .catch(console.error);
   };
 
   const closeOrderModal = (): void => {

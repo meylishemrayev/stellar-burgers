@@ -1,12 +1,9 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getOrdersApi } from '@api';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import type { TOrder } from '@utils-types';
 
-export const getUserOrders = createAsyncThunk(
-  'userOrders/getUserOrders',
-  async () => await getOrdersApi()
-);
+export const getUserOrders = createAsyncThunk('userOrders/getUserOrders', getOrdersApi);
 
 type TUserOrdersState = {
   orders: TOrder[];

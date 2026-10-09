@@ -6,6 +6,7 @@ import { useSelector } from '../../services/store';
 
 import type { OrderCardProps } from './type';
 import type { TIngredient } from '@utils-types';
+import { selectIngredients } from '@/services/selectors';
 
 const maxIngredients = 6;
 
@@ -13,7 +14,7 @@ export const OrderCard = memo(function OrderCard({
   order,
 }: OrderCardProps): React.JSX.Element | null {
   const location = useLocation();
-  const ingredients = useSelector((state) => state.ingredients.ingredients);
+  const ingredients = useSelector(selectIngredients);
 
   const orderInfo = useMemo(() => {
     if (!ingredients.length) return null;

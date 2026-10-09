@@ -1,6 +1,3 @@
-import { useEffect } from 'react';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-
 import { AppHeader, Modal, OrderInfo, IngredientDetails } from '@components';
 import {
   ConstructorPage,
@@ -14,33 +11,44 @@ import {
   NotFound404,
 } from '@pages';
 import { Preloader } from '@ui';
-import { ProtectedRoute } from '../protected-route/protected-route';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
-import { useDispatch, useSelector } from '../../services/store';
 import { getIngredients } from '../../services/slices/ingredients-slice';
 import { getUser } from '../../services/slices/user-slice';
+import { useDispatch, useSelector } from '../../services/store';
+import { ProtectedRoute } from '../protected-route/protected-route';
+
+import type { TLocationState } from '@/utils/types';
 
 import '../../index.css';
+
 import styles from './app.module.css';
+import {
+  selectIngredientsError,
+  selectIngredientsLoading,
+  selectIsAuthChecked,
+} from '@/services/selectors';
 
 const App = (): React.JSX.Element => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isLoading = useSelector((state) => state.ingredients.isLoading);
-  const error = useSelector((state) => state.ingredients.error);
-  const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
+  const isLoading = useSelector(selectIngredientsLoading);
+  const error = useSelector(selectIngredientsError);
+  const isAuthChecked = useSelector(selectIsAuthChecked);
 
-  const background = location.state?.background;
+  const state = location.state as TLocationState | null;
+  const background = state?.background;
 
   useEffect(() => {
     void dispatch(getIngredients());
     void dispatch(getUser());
   }, [dispatch]);
 
-  const handleCloseModal = () => {
-    navigate(-1);
+  const handleCloseModal = (): void => {
+    void navigate(-1);
   };
 
   if (isLoading || !isAuthChecked) {
@@ -59,7 +67,7 @@ const App = (): React.JSX.Element => {
     <div className={styles.app}>
       <AppHeader />
 
-      <Routes location={background || location}>
+      <Routes location={background ?? location}>
         <Route path="/" element={<ConstructorPage />} />
         <Route path="/feed" element={<Feed />} />
         <Route path="/ingredients/:id" element={<IngredientDetails />} />

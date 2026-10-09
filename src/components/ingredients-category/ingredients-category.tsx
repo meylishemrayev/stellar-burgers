@@ -5,6 +5,7 @@ import { useSelector } from '../../services/store';
 
 import type { TIngredientsCategoryProps } from './type';
 import type { TIngredient } from '@utils-types';
+import { selectBurgerConstructor } from '@/services/selectors';
 
 export const IngredientsCategory = ({
   title,
@@ -12,7 +13,7 @@ export const IngredientsCategory = ({
   ingredients,
   ref,
 }: TIngredientsCategoryProps): React.JSX.Element => {
-  const burgerConstructor = useSelector((state) => state.burgerConstructor);
+  const burgerConstructor = useSelector(selectBurgerConstructor);
 
   const ingredientsCounters = useMemo(() => {
     const { bun, ingredients } = burgerConstructor;

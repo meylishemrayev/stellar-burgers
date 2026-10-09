@@ -4,11 +4,11 @@ import {
   ProfileIcon,
   Logo,
 } from '@krgaa/react-developer-burger-ui-components';
+import { Link, NavLink } from 'react-router-dom';
 
 import type { TAppHeaderUIProps } from './type';
 
 import styles from './app-header.module.css';
-import { Link, NavLink } from 'react-router-dom';
 
 export const AppHeaderUI = ({ userName }: TAppHeaderUIProps): React.JSX.Element => (
   <header className={styles.header}>
@@ -18,20 +18,28 @@ export const AppHeaderUI = ({ userName }: TAppHeaderUIProps): React.JSX.Element 
           to="/"
           end
           className={({ isActive }) =>
-            `${styles.link} ${isActive ? styles.link_active : undefined}`
+            `${styles.link} ${isActive ? styles.link_active : ''}`
           }
         >
-          <BurgerIcon type={'primary'} />
-          <p className="text text_type_main-default ml-2 mr-10">Конструктор</p>
+          {({ isActive }) => (
+            <>
+              <BurgerIcon type={isActive ? 'primary' : 'secondary'} />
+              <p className="text text_type_main-default ml-2 mr-10">Конструктор</p>
+            </>
+          )}
         </NavLink>
         <NavLink
           to="/feed"
           className={({ isActive }) =>
-            `${styles.link} ${isActive ? styles.link_active : undefined}`
+            `${styles.link} ${isActive ? styles.link_active : ''}`
           }
         >
-          <ListIcon type={'primary'} />
-          <p className="text text_type_main-default ml-2">Лента заказов</p>
+          {({ isActive }) => (
+            <>
+              <ListIcon type={isActive ? 'primary' : 'secondary'} />
+              <p className="text text_type_main-default ml-2">Лента заказов</p>
+            </>
+          )}
         </NavLink>
       </div>
       <div className={styles.logo}>
@@ -40,18 +48,20 @@ export const AppHeaderUI = ({ userName }: TAppHeaderUIProps): React.JSX.Element 
         </Link>
       </div>
       <div className={styles.link_position_last}>
-        <ProfileIcon type={'primary'} />
         <NavLink
           to="/profile"
           className={({ isActive }) =>
-            `${styles.link} ${
-              isActive ? `${styles.link_active}` : styles.link_position_last
-            }`
+            `${styles.link} ${isActive ? `${styles.link_active}` : ''}`
           }
         >
-          <p className="text text_type_main-default ml-2">
-            {userName ?? 'Личный кабинет'}
-          </p>
+          {({ isActive }) => (
+            <>
+              <ProfileIcon type={isActive ? 'primary' : 'secondary'} />
+              <p className="text text_type_main-default ml-2">
+                {userName ?? 'Личный кабинет'}
+              </p>
+            </>
+          )}
         </NavLink>
       </div>
     </nav>

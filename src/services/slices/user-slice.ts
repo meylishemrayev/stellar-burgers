@@ -1,4 +1,3 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import {
   getUserApi,
   loginUserApi,
@@ -10,11 +9,13 @@ import {
   type TLoginData,
   type TRegisterData,
 } from '@api';
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
+
 import { setCookie, deleteCookie } from '../../utils/cookie';
 
 import type { TUser } from '@utils-types';
 
-export const getUser = createAsyncThunk('user/getUser', async () => await getUserApi());
+export const getUser = createAsyncThunk('user/getUser', getUserApi);
 
 export const loginUser = createAsyncThunk('user/loginUser', async (data: TLoginData) => {
   const res = await loginUserApi(data);
@@ -33,10 +34,7 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-export const updateUser = createAsyncThunk(
-  'user/updateUser',
-  async (data: Partial<TRegisterData>) => await updateUserApi(data)
-);
+export const updateUser = createAsyncThunk('user/updateUser', updateUserApi);
 
 export const logoutUser = createAsyncThunk('user/logoutUser', async () => {
   await logoutApi();
@@ -44,15 +42,8 @@ export const logoutUser = createAsyncThunk('user/logoutUser', async () => {
   localStorage.removeItem('refreshToken');
 });
 
-export const forgotPassword = createAsyncThunk(
-  'user/forgotPassword',
-  async (data: { email: string }) => await forgotPasswordApi(data)
-);
-
-export const resetPassword = createAsyncThunk(
-  'user/resetPassword',
-  async (data: { password: string; token: string }) => await resetPasswordApi(data)
-);
+export const forgotPassword = createAsyncThunk('user/forgotPassword', forgotPasswordApi);
+export const resetPassword = createAsyncThunk('user/resetPassword', resetPasswordApi);
 
 type TUserState = {
   user: TUser | null;
@@ -72,7 +63,7 @@ export const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setAuthChecked: (state, action) => {
+    setAuthChecked: (state, action: PayloadAction<boolean>) => {
       state.isAuthChecked = action.payload;
     },
     clearError: (state) => {

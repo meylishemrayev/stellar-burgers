@@ -1,15 +1,20 @@
 import { ForgotPasswordUI } from '@ui-pages';
-import { type SyntheticEvent, useState } from 'react';
+import { type SyntheticEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { clearError, forgotPassword } from '../../services/slices/user-slice';
 import { useDispatch, useSelector } from '../../services/store';
-import { forgotPassword } from '../../services/slices/user-slice';
+import { selectUserError } from '@/services/selectors';
 
 export const ForgotPassword = (): React.JSX.Element => {
   const [email, setEmail] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const error = useSelector((state) => state.user.error);
+  const error = useSelector(selectUserError);
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   const handleSubmit = (e: SyntheticEvent): void => {
     e.preventDefault();
