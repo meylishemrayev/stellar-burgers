@@ -24,54 +24,82 @@ const mockFilling: TIngredient = {
 };
 
 describe('ingredientsSlice reducer', () => {
-  const initialState = ingredientsSlice.getInitialState();
+  const expectedInitialState = {
+    ingredients: [],
+    isLoading: false,
+    error: null,
+  };
 
   it('должен возвращать начальное состояние при вызове с undefined и UNKNOWN экшеном', () => {
     expect(ingredientsSlice.reducer(undefined, { type: 'UNKNOWN' })).toEqual(
-      initialState
+      expectedInitialState
     );
   });
 
   it('должен обрабатывать getIngredients.pending', () => {
+    const stateWithError = {
+      ingredients: [],
+      isLoading: false,
+      error: 'Предыдущая ошибка',
+    };
     const action = { type: getIngredients.pending.type };
-    const state = ingredientsSlice.reducer(initialState, action);
+
+    const state = ingredientsSlice.reducer(stateWithError, action);
+
     expect(state.isLoading).toBe(true);
     expect(state.error).toBeNull();
   });
 
   it('должен обрабатывать getIngredients.rejected', () => {
+    const stateLoading = {
+      ingredients: [],
+      isLoading: true,
+      error: null,
+    };
     const action = {
       type: getIngredients.rejected.type,
       error: { message: 'Ошибка сети' },
     };
-    const state = ingredientsSlice.reducer(initialState, action);
+
+    const state = ingredientsSlice.reducer(stateLoading, action);
+
     expect(state.isLoading).toBe(false);
     expect(state.error).toBe('Ошибка сети');
   });
 
   it('должен обрабатывать getIngredients.fulfilled', () => {
+    const stateLoading = {
+      ingredients: [],
+      isLoading: true,
+      error: null,
+    };
     const action = {
       type: getIngredients.fulfilled.type,
       payload: [mockIngredient],
     };
-    const state = ingredientsSlice.reducer(initialState, action);
+
+    const state = ingredientsSlice.reducer(stateLoading, action);
+
     expect(state.isLoading).toBe(false);
     expect(state.ingredients).toEqual([mockIngredient]);
   });
 });
 
 describe('constructorSlice reducer', () => {
-  const initialState = constructorSlice.getInitialState();
+  const expectedInitialState = {
+    bun: null,
+    ingredients: [],
+  };
 
   it('должен возвращать начальное состояние при вызове с undefined и UNKNOWN экшеном', () => {
     expect(constructorSlice.reducer(undefined, { type: 'UNKNOWN' })).toEqual(
-      initialState
+      expectedInitialState
     );
   });
 
   it('должен добавлять булку (addIngredient)', () => {
     const action = constructorSlice.actions.addIngredient(mockIngredient);
-    const state = constructorSlice.reducer(initialState, action);
+    const state = constructorSlice.reducer(expectedInitialState, action);
 
     expect(state.bun).toBeDefined();
     expect(state.bun?.name).toBe('Тестовая булка');
@@ -80,7 +108,7 @@ describe('constructorSlice reducer', () => {
 
   it('должен добавлять начинку (addIngredient)', () => {
     const action = constructorSlice.actions.addIngredient(mockFilling);
-    const state = constructorSlice.reducer(initialState, action);
+    const state = constructorSlice.reducer(expectedInitialState, action);
 
     expect(state.ingredients.length).toBe(1);
     expect(state.ingredients[0].name).toBe('Тестовая начинка');
@@ -88,14 +116,26 @@ describe('constructorSlice reducer', () => {
   });
 
   it('должен удалять ингредиент (removeIngredient)', () => {
-    const addedAction = constructorSlice.actions.addIngredient(mockFilling);
-    const stateWithIngredient = constructorSlice.reducer(initialState, addedAction);
-    const idToRemove = stateWithIngredient.ingredients[0].id;
+    const ingredientToKeep = { ...mockFilling, id: 'id1', name: 'Оставить' };
+    const ingredientToRemove = { ...mockFilling, id: 'id2', name: 'Удалить' };
 
-    const removeAction = constructorSlice.actions.removeIngredient(idToRemove);
-    const state = constructorSlice.reducer(stateWithIngredient, removeAction);
+    const stateWithTwoIngredients = {
+      bun: null,
+      ingredients: [ingredientToKeep, ingredientToRemove],
+    };
 
-    expect(state.ingredients.length).toBe(0);
+    const removeAction = constructorSlice.actions.removeIngredient(
+      ingredientToRemove.id
+    );
+    const state = constructorSlice.reducer(stateWithTwoIngredients, removeAction);
+
+    expect(state.ingredients.length).toBe(1);
+
+    expect(state.ingredients[0].id).toBe('id1');
+    expect(state.ingredients[0].name).toBe('Оставить');
+
+    const removedItem = state.ingredients.find((item) => item.id === 'id2');
+    expect(removedItem).toBeUndefined();
   });
 
   it('должен перемещать ингредиенты (moveIngredientUp, moveIngredientDown)', () => {
@@ -109,11 +149,21 @@ describe('constructorSlice reducer', () => {
 
     const upAction = constructorSlice.actions.moveIngredientUp(1);
     const stateUp = constructorSlice.reducer(stateWithTwoIngredients, upAction);
-    expect(stateUp.ingredients[0].name).toBe('Второй');
+
+    expect(stateUp.ingredients.length).toBe(2);
+    expect(stateUp.ingredients).toEqual([
+      { ...mockFilling, id: 'id2', name: 'Второй' },
+      { ...mockFilling, id: 'id1', name: 'Первый' },
+    ]);
 
     const downAction = constructorSlice.actions.moveIngredientDown(0);
     const stateDown = constructorSlice.reducer(stateWithTwoIngredients, downAction);
-    expect(stateDown.ingredients[0].name).toBe('Второй');
+
+    expect(stateDown.ingredients.length).toBe(2);
+    expect(stateDown.ingredients).toEqual([
+      { ...mockFilling, id: 'id2', name: 'Второй' },
+      { ...mockFilling, id: 'id1', name: 'Первый' },
+    ]);
   });
 
   it('должен очищать конструктор (clearConstructor)', () => {
@@ -124,7 +174,6 @@ describe('constructorSlice reducer', () => {
     const action = constructorSlice.actions.clearConstructor();
     const state = constructorSlice.reducer(stateWithIngredients, action);
 
-    expect(state.bun).toBeNull();
-    expect(state.ingredients.length).toBe(0);
+    expect(state).toEqual(expectedInitialState);
   });
 });
