@@ -2,11 +2,14 @@ import type { Config } from 'jest';
 
 const config: Config = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  testEnvironment: 'jsdom',
+  
   roots: ['<rootDir>/src'],
-  testMatch: ['**/*.test.ts'],
+  
+  testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
+  
   moduleNameMapper: {
-    '^@api$': '<rootDir>/src/utils/burger-api',
+    '^@api$': '<rootDir>/src/utils/burger-api.ts',
     '^@api/(.*)$': '<rootDir>/src/utils/burger-api/$1',
     '^@slices$': '<rootDir>/src/services/slices',
     '^@slices/(.*)$': '<rootDir>/src/services/slices/$1',
@@ -32,13 +35,19 @@ const config: Config = {
     '^@ui/(.*)$': '<rootDir>/src/components/ui/$1',
     '^@ui-pages$': '<rootDir>/src/components/ui/pages',
     '^@ui-pages/(.*)$': '<rootDir>/src/components/ui/pages/$1',
+    
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/__mocks__/fileMock.js'
   },
+  
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: 'tsconfig.test.json',
-      diagnostics: false,
+      tsconfig: 'tsconfig.json', 
+      diagnostics: false, 
     }],
   },
+  
+  verbose: true,
 };
 
 export default config;
