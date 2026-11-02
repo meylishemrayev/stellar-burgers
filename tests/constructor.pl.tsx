@@ -2,13 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Конструктор бургера', () => {
   test.beforeEach(async ({ page, context }) => {
-    const response = await page.request.post(
-      'https://norma.education-services.ru/api/auth/login',
-      {
-        data: { email: 'stellar@burgers.com', password: 'burgers' },
-      }
-    );
-    const { accessToken, refreshToken } = await response.json();
+    const accessToken = 'Bearer fake-access-token';
+    const refreshToken = 'fake-refresh-token';
 
     await context.addCookies([
       {
@@ -18,13 +13,15 @@ test.describe('Конструктор бургера', () => {
         path: '/',
       },
     ]);
-    await page.addInitScript(() => {
-      localStorage.setItem('refreshToken', refreshToken);
-    });
+
+    await page.addInitScript((token: string) => {
+      localStorage.setItem('refreshToken', token);
+    }, refreshToken);
 
     await page.routeFromHAR('tests/hars/api.har', {
-      url: '**/api/**',
+      url: new RegExp('/api/'),
       update: false,
+      notFound: 'abort',
     });
 
     await page.goto('/');
@@ -63,8 +60,16 @@ test.describe('Конструктор бургера', () => {
     await expect(modalHeader).toBeVisible();
 
     await expect(modal.getByText('Краторная булка N-200i')).toBeVisible();
-    await expect(modal.getByText('80')).toBeVisible();
-    await expect(modal.getByText('24')).toBeVisible();
+
+    const bunProteins = modal.locator('li').filter({
+      has: page.getByText('Белки, г', { exact: true }),
+    });
+    await expect(bunProteins.locator('p').last()).toHaveText('80');
+
+    const bunFats = modal.locator('li').filter({
+      has: page.getByText('Жиры, г', { exact: true }),
+    });
+    await expect(bunFats.locator('p').last()).toHaveText('24');
 
     await page.getByRole('button', { name: 'Закрыть' }).click();
     await expect(modalHeader).not.toBeVisible();
@@ -79,8 +84,16 @@ test.describe('Конструктор бургера', () => {
     await expect(modalHeader).toBeVisible();
 
     await expect(modal.getByText('Биокотлета из марсианской Магнолии')).toBeVisible();
-    await expect(modal.getByText('420')).toBeVisible();
-    await expect(modal.getByText('142')).toBeVisible();
+
+    const fillingProteins = modal.locator('li').filter({
+      has: page.getByText('Белки, г', { exact: true }),
+    });
+    await expect(fillingProteins.locator('p').last()).toHaveText('420');
+
+    const fillingFats = modal.locator('li').filter({
+      has: page.getByText('Жиры, г', { exact: true }),
+    });
+    await expect(fillingFats.locator('p').last()).toHaveText('142');
 
     const overlay = page.locator('[class*="modal-overlay"]');
 
@@ -89,6 +102,9 @@ test.describe('Конструктор бургера', () => {
     await overlay.click({ position: { x: 10, y: 10 } });
 
     await expect(modalHeader).not.toBeVisible();
+    await expect(
+      modal.getByText('Биокотлета из марсианской Магнолии')
+    ).not.toBeVisible();
   });
 
   test('Создание заказа и очистка конструктора', async ({ page }) => {
@@ -96,6 +112,9 @@ test.describe('Конструктор бургера', () => {
     await expect(bunText).toBeVisible({ timeout: 10000 });
 
     const constructor = page.locator('section').filter({ hasText: 'Оформить заказ' });
+
+    await expect(constructor.getByText('Выберите булки').first()).toBeVisible();
+    await expect(constructor.getByText('Выберите начинку')).toBeVisible();
 
     const bunCard = page.locator('li').filter({ hasText: 'Краторная булка N-200i' });
     await bunCard.getByRole('button', { name: 'Добавить' }).click();
@@ -116,11 +135,8 @@ test.describe('Конструктор бургера', () => {
     await expect(orderNumber).toBeVisible();
     await expect(page.getByText('идентификатор заказа')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Закрыть' }).click();
-
-    await expect(orderNumber).not.toBeVisible();
-    await expect(page.getByText('идентификатор заказа')).not.toBeVisible();
-
+    await expect(constructor.getByText('Выберите булки').first()).toBeVisible();
+    await expect(constructor.getByText('Выберите начинку')).toBeVisible();
     await expect(
       constructor.getByText('Краторная булка N-200i (верх)')
     ).not.toBeVisible();
@@ -128,7 +144,8 @@ test.describe('Конструктор бургера', () => {
       constructor.getByText('Биокотлета из марсианской Магнолии')
     ).not.toBeVisible();
 
-    await expect(constructor.getByText('Выберите булки').first()).toBeVisible();
-    await expect(constructor.getByText('Выберите начинку')).toBeVisible();
+    await page.locator('#modals').getByRole('button', { name: 'Закрыть' }).click();
+    await expect(orderNumber).not.toBeVisible();
+    await expect(page.getByText('идентификатор заказа')).not.toBeVisible();
   });
 });
